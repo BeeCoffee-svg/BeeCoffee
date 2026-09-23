@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bee Coffee - Hệ Thống Bán Hàng & Quản Lý</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; }
+        body { background: #fffdf9; color: #2d3748; padding-bottom: 90px; }
+        
+        /* Top Navigation Switch Mode */
+        .app-header { background: linear-gradient(135deg, #2c3e50, #1a252f); color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 150; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .app-title { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .mode-switch { display: flex; background: rgba(255,255,255,0.1); border-radius: 25px; padding: 4px; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .mode-btn { border: none; background: transparent; color: #cbd5e0; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease; }
+        .mode-btn.active { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; box-shadow: 0 4px 10px rgba(243,156,18,0.4); }
+        .logout-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: none; transition: 0.2s; }
+        .logout-btn:hover { background: #c0392b; }
+
+        /* Main Header Info */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, #ffffff, #fef9e7);
+            padding: 20px 25px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(243,156,18,0.08);
+            margin: 20px auto;
+            max-width: 950px;
+            border: 1px solid rgba(243,156,18,0.15);
+        }
+        .menu-title { margin: 0; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #d35400, #f39c12); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-info { text-align: right; font-size: 13px; color: #4a5568; line-height: 1.6; }
+        .header-info p { margin: 0; }
+        .header-info a { color: #e67e22; text-decoration: none; font-weight: 700; }
+
+        /* View Sections */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Layout Container */
+        .container { max-width: 950px; margin: 20px auto; padding: 0 15px; }
+
+        /* Filter & Action Bar */
+        .action-bar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .filter-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; border: none; border-radius: 20px; background: #fef5d8; color: #d35400; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: all 0.2s; }
+        .filter-btn.active, .filter-btn:hover { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; box-shadow: 0 4px 12px rgba(243,156,18,0.3); }
+
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .product-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s, box-shadow 0.3s; border: 1px solid #fae5b9; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(243,156,18,0.15); }
+        .product-img { width: 100%; height: 140px; object-fit: cover; transition: transform 0.4s; }
+        .product-card:hover .product-img { transform: scale(1.05); }
+        .product-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-title { font-size: 1rem; font-weight: 700; color: #2d3748; }
+        .product-price { color: #d35400; font-weight: 700; font-size: 1.05rem; margin: 8px 0; }
+        .add-btn { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none; padding: 10px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 10px rgba(243,156,18,0.3); transition: opacity 0.2s; }
+        .add-btn:hover { opacity: 0.9; }
+
+        /* Bottom Cart Bar */
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #fae5b9; padding: 14px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 100; }
+        .cart-total { color: #d35400; font-weight: 700; font-size: 1.2rem; }
+        .checkout-btn { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(46,204,113,0.4); transition: transform 0.2s; }
+        .checkout-btn:hover { transform: scale(1.02); }
+
+        /* Admin Styles */
+        .admin-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); border: 1px solid #edf2f7; }
+        .admin-card-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .admin-card h3 { margin: 0; font-size: 1.15rem; color: #2c3e50; font-weight: 700; display: inline-block; }
+        .admin-card-body { margin-top: 18px; display: none; }
+        .admin-card.expanded .admin-card-body { display: block; }
+        .toggle-icon { font-size: 0.8rem; font-weight: 700; background: #edf2f7; padding: 6px 14px; border-radius: 20px; color: #4a5568; transition: 0.2s; }
+        
+        /* Revenue Dashboard Cards */
+        .revenue-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 18px; }
+        .stat-box { background: #fdfefe; border: 1px solid #edf2f7; border-left: 5px solid #3498db; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .stat-box.green { border-left-color: #2ecc71; background: #f4fcf7; }
+        .stat-box.orange { border-left-color: #e67e22; background: #fffbf5; }
+        .stat-box.purple { border-left-color: #9b59b6; background: #fbf5fc; }
+        .stat-title { font-size: 0.75rem; color: #718096; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.4rem; font-weight: 700; color: #2c3e50; }
+
+        .revenue-filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+        .revenue-filter-bar select, .revenue-filter-bar input { padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; outline: none; }
+
+        .order-item { border: 1px solid #edf2f7; border-radius: 12px; padding: 14px; margin-bottom: 12px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.01); }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: #4a5568; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e0; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #f39c12; }
+
+        .preview-container {
+            margin-top: 10px; width: 110px; height: 110px; border: 2px dashed #cbd5e0; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: #f7fafc;
+        }
+        .preview-container img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .preview-text { color: #a0aec0; font-size: 11px; text-align: center; font-weight: 600; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 200; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: scaleUp 0.3s ease; }
+        @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #f39c12; background: white; color: #f39c12; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .qty-btn:hover { background: #f39c12; color: white; }
+        
+        .login-box { text-align: center; }
+        .login-box h3 { margin-bottom: 15px; color: #2c3e50; }
+        .login-box input { margin-bottom: 15px; text-align: center; font-size: 1.2rem; letter-spacing: 3px; }
+        .login-err { color: #e74c3c; font-size: 0.85rem; margin-bottom: 12px; display: none; font-weight: 600; }
+
+        /* VÙNG IN ẤN */
+        #print-invoice-section { display: none; }
+        #print-report-section { display: none; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .app-header, .main-header, .view-section, .modal, .cart-bar { display: none !important; }
+            body.print-mode-invoice #print-invoice-section { display: block !important; position: absolute; top: 0; left: 0; width: 100%; background: white; padding: 15px; z-index: 99999; }
+            body.print-mode-report #print-report-section { display: block !important; position: absolute; top: 0; left: 0; width: 100%; background: white; padding: 20px; z-index: 99999; }
+        }
+
+        @media (max-width: 600px) {
+            .main-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .header-info { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+  <!-- Thanh Điều Hướng Chuyển Vai Trò -->
+  <div class="app-header">
+    <div class="app-title">🐝 Bee Coffee Online</div>
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btn-customer-mode" onclick="switchMode('customer')">Khách Hàng</button>
+      <button class="mode-btn" id="btn-staff-mode" onclick="switchMode('staff')">Bán Quầy 🛒</button>
+      <button class="mode-btn" id="btn-admin-mode" onclick="switchMode('admin')">Chủ Quán 🔒</button>
+      <button class="logout-btn" id="btn-logout" onclick="logoutSystem()">Thoát 🚪</button>
+    </div>
+  </div>
+
+  <!-- Header Thông tin cửa hàng -->
+  <header class="main-header">
+      <h1 class="menu-title">Bee Coffee - Thơm ngon chuẩn "gu"</h1>
+      <div class="header-info">
+          <p><strong>📍 Địa chỉ:</strong> Vinhomes Vũ Yên, Hải Phòng</p>
+          <p><strong>📞 Hotline:</strong> <a href="tel:0978914096">0978914096</a></p>
+      </div>
+  </header>
+
+  <!-- ================= GIAO DIỆN KHÁCH HÀNG ================= -->
+  <div id="customer-view" class="view-section active">
+    <div class="container" style="margin-top: 0;">
+      <div class="action-bar-top">
+        <div class="filter-btn-group">
+          <button class="filter-btn active" onclick="filterMenu('all', event)">✨ Tất cả</button>
+          <button class="filter-btn" onclick="filterMenu('ca-phe', event)">☕ Cà phê & Latte</button>
+          <button class="filter-btn" onclick="filterMenu('tra', event)">🍵 Trà</button>
+          <button class="filter-btn" onclick="filterMenu('nuoc-giai-khat', event)">🥤 Nước giải khát</button>
+          <button class="filter-btn" onclick="filterMenu('sua-chua', event)">🥛 Sữa chua</button>
+          <button class="filter-btn" onclick="filterMenu('sua-lac', event)">🧋 Sữa lắc & Sữa tươi</button>
+        </div>
+      </div>
+      <div class="menu-grid" id="menu-container"></div>
+    </div>
+
+    <div class="cart-bar">
+      <div onclick="openCartModal()" style="cursor:pointer">
+        🛒 Giỏ hàng: <span id="cart-count" style="font-weight:700; color:#e67e22;">0</span> món<br>
+        Tổng: <span class="cart-total" id="cart-total">0đ</span>
+      </div>
+      <button class="checkout-btn" onclick="openCartModal()">Xem Giỏ Hàng ➔</button>
+    </div>
+  </div>
+
+  <!-- ================= GIAO DIỆN NHÂN VIÊN BÁN QUẦY (POS) ================= -->
+  <div id="staff-view" class="view-section">
+    <div class="container">
+      <div class="admin-card expanded" style="border-left: 5px solid #27ae60;">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>💰 Thống Kê Doanh Thu Bán Hàng Tại Quầy (Hôm Nay)</h3>
+          <span class="toggle-icon">Thu gọn ✖</span>
+        </div>
+        <div class="admin-card-body" style="display: block;">
+          <div class="revenue-stats-grid">
+            <div class="stat-box" style="border-left-color: #e67e22;">
+              <div class="stat-title">💵 Doanh Thu Tiền Mặt</div>
+              <div class="stat-value" id="staff-stat-cash" style="color: #e67e22;">0đ</div>
+            </div>
+            <div class="stat-box" style="border-left-color: #2980b9;">
+              <div class="stat-title">📱 Doanh Thu Chuyển Khoản (QR)</div>
+              <div class="stat-value" id="staff-stat-transfer" style="color: #2980b9;">0đ</div>
+            </div>
+            <div class="stat-box green" style="grid-column: 1 / -1;">
+              <div class="stat-title">📊 Tổng Doanh Thu Bán Quầy</div>
+              <div class="stat-value" id="staff-stat-total" style="color: #27ae60; font-size: 1.6rem;">0đ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card expanded">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>⚡ Giao Diện Bán Hàng Trực Tiếp Tại Quầy (Nhân Viên)</h3>
+          <span class="toggle-icon">Thu gọn ✖</span>
+        </div>
+        <div class="admin-card-body" style="display: block;">
+          <div class="form-group">
+            <label>Tên khách hàng / Bàn:</label>
+            <input type="text" id="pos-customer-name" placeholder="Ví dụ: Khách mang về / Bàn 01">
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại (tùy chọn):</label>
+            <input type="tel" id="pos-customer-phone" placeholder="0901234567">
+          </div>
+          <div class="form-group">
+            <label>Danh sách món & số lượng:</label>
+            <div id="pos-product-selection-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #edf2f7; padding: 10px; border-radius: 10px; background: #fafafa;"></div>
+          </div>
+          <div style="margin-top: 12px; text-align: right; font-weight: bold; font-size: 1.15rem;">
+            Tổng tiền thu: <span style="color: #d35400;" id="pos-total-amount">0đ</span>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <label style="font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; display:block;">Hình thức thanh toán:</label>
+            <select id="pos-payment-method" style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 10px; font-size: 0.95rem;">
+              <option value="cash">💵 Tiền mặt</option>
+              <option value="qr">📱 Quét mã QR Chuyển khoản ngân hàng</option>
+            </select>
+          </div>
+
+          <button onclick="completeDirectPOSOrder()" style="background:linear-gradient(135deg, #27ae60, #2ecc71); color:white; border:none; padding:12px; border-radius:10px; font-weight:700; width:100%; cursor:pointer; margin-top:18px; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(39,174,96,0.3);">✅ Hoàn Tất Đơn & In Hóa Đơn</button>
+        </div>
+      </div>
+
+      <div class="admin-card expanded">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>🧾 Lịch Sử Đơn Bán Tại Quầy (In Lại Hóa Đơn)</h3>
+          <span class="toggle-icon">Thu gọn ✖</span>
+        </div>
+        <div class="admin-card-body" style="display: block;">
+          <div id="staff-order-history-list" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= GIAO DIỆN CHỦ QUÁN (ADMIN) ================= -->
+  <div id="admin-view" class="view-section">
+    <div class="container">
+      
+      <div class="admin-card" id="card-revenue">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>📊 Thống Kê Doanh Thu & Lợi Nhuận</h3>
+          <span class="toggle-icon">Hiện 🔍</span>
+        </div>
+        <div class="admin-card-body">
+          <div class="revenue-filter-bar">
+            <div>
+              <label style="font-size:0.75rem; font-weight:700;">Xem theo:</label>
+              <select id="rev-type" onchange="toggleRevInputs()">
+                <option value="day">Theo Ngày</option>
+                <option value="month" selected>Theo Tháng</option>
+                <option value="quarter">Theo Quý</option>
+                <option value="year">Theo Năm</option>
+              </select>
+            </div>
+            <div id="filter-input-wrapper"></div>
+          </div>
+
+          <div class="revenue-stats-grid">
+            <div class="stat-box">
+              <div class="stat-title">Doanh Thu Thành Công</div>
+              <div class="stat-value" id="stat-revenue" style="color: #2980b9;">0đ</div>
+            </div>
+            <div class="stat-box orange">
+              <div class="stat-title">Tổng Vốn</div>
+              <div class="stat-value" id="stat-cost" style="color: #e67e22;">0đ</div>
+            </div>
+            <div class="stat-box green">
+              <div class="stat-title">Lợi Nhuận Thực Tế</div>
+              <div class="stat-value" id="stat-profit" style="color: #27ae60;">0đ</div>
+            </div>
+            <div class="stat-box purple">
+              <div class="stat-title">Tổng Chi Phí Nguyên Liệu Kho</div>
+              <div class="stat-value" id="stat-material-total" style="color: #8e44ad;">0đ</div>
+            </div>
+          </div>
+
+          <button onclick="printRevenueReport()" style="background: linear-gradient(135deg, #2980b9, #3498db); color: white; border: none; padding: 12px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 12px; width: 100%; box-shadow: 0 4px 12px rgba(41,128,185,0.3);">🖨️ In Báo Cáo Doanh Thu & Lợi Nhuận Kỳ Này</button>
+        </div>
+      </div>
+
+      <div class="admin-card" id="card-materials">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>📦 Quản Lý Nguyên Vật Liệu Đầu Vào</h3>
+          <span class="toggle-icon">Hiện 🔍</span>
+        </div>
+        <div class="admin-card-body">
+          <form id="add-material-form" onsubmit="addNewMaterial(event)" style="background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #edf2f7; margin-bottom: 15px;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: flex-end;">
+              <div class="form-group" style="margin-bottom:0;"><label>Tên:</label><input type="text" id="mat-name" required></div>
+              <div class="form-group" style="margin-bottom:0;"><label>ĐV:</label><input type="text" id="mat-unit" required></div>
+              <div class="form-group" style="margin-bottom:0;"><label>Giá:</label><input type="number" id="mat-price" required></div>
+              <button type="submit" style="background:#8e44ad; color:white; border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer; height: 42px;">Thêm</button>
+            </div>
+          </form>
+          <div id="admin-material-list"></div>
+        </div>
+      </div>
+
+      <div class="admin-card" id="card-orders">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>📋 Danh Sách Đơn Hàng & Trạng Thái Giao Hàng</h3>
+          <span class="toggle-icon">Hiện 🔍</span>
+        </div>
+        <div class="admin-card-body">
+          <div id="order-list-container"></div>
+        </div>
+      </div>
+
+      <div class="admin-card" id="card-add-product">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>➕ Thêm Món Mới Vào Menu Bán Hàng</h3>
+          <span class="toggle-icon">Hiện 🔍</span>
+        </div>
+        <div class="admin-card-body">
+          <form id="add-product-form" onsubmit="addNewProduct(event)">
+            <div class="form-group"><label>Tên món:</label><input type="text" id="new-p-name" required></div>
+            <div class="form-group"><label>Loại:</label>
+              <select id="new-p-category">
+                <option value="ca-phe">Cà phê & Latte</option>
+                <option value="tra">Trà</option>
+                <option value="nuoc-giai-khat">Nước giải khát</option>
+                <option value="sua-chua">Sữa chua</option>
+                <option value="sua-lac">Sữa lắc & Sữa tươi</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Giá bán:</label><input type="number" id="new-p-price" required></div>
+            <div class="form-group"><label>Giá vốn:</label><input type="number" id="new-p-cost" required></div>
+            <div class="form-group"><label>Mô tả:</label><input type="text" id="new-p-desc"></div>
+            <div class="form-group"><label>Ảnh:</label><input type="file" id="new-p-img-file" accept="image/*" onchange="previewImage(event)" required>
+              <div class="preview-container"><span class="preview-text" id="preview-text">Chưa có ảnh</span><img id="image-preview" src=""></div>
+            </div>
+            <button type="submit" style="background:linear-gradient(135deg, #27ae60, #2ecc71); color:white; border:none; padding:12px; border-radius:10px; font-weight:700; width:100%; cursor:pointer; box-shadow: 0 4px 12px rgba(39,174,96,0.3);">Lưu Món</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="admin-card" id="card-manage-menu">
+        <div class="admin-card-header" onclick="toggleCard(this)">
+          <h3>✏️ Quản Lý Món, Giá Vốn & Mật Khẩu</h3>
+          <span class="toggle-icon">Hiện 🔍</span>
+        </div>
+        <div class="admin-card-body">
+          <div id="admin-menu-list"></div>
+          <hr style="margin: 18px 0; border: none; border-top: 1px dashed #cbd5e0;">
+          <div style="font-size: 0.9rem; margin-bottom: 12px;">
+            <strong>🔒 Đổi MK Chủ Quán:</strong>
+            <div style="display:flex; gap:10px; margin-top:8px;"><input type="password" id="new-admin-pass" placeholder="Mật khẩu mới"><button onclick="changeAdminPass()" style="background:#2980b9; color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:700;">Đổi MK</button></div>
+          </div>
+          <div style="font-size: 0.9rem;">
+            <strong>🔒 Đổi MK Nhân Viên:</strong>
+            <div style="display:flex; gap:10px; margin-top:8px;"><input type="password" id="new-staff-pass" placeholder="Mật khẩu mới"><button onclick="changeStaffPass()" style="background:#2980b9; color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:700;">Đổi MK</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VÙNG ẨN IN HÓA ĐƠN -->
+  <div id="print-invoice-section">
+    <div style="text-align: center; margin-bottom: 15px;">
+      <h3 style="margin: 0;">🐝 BEE COFFEE</h3>
+      <p style="font-size: 11px; margin: 2px 0;">ĐC: Vinhomes Vũ Yên, Hải Phòng | ĐT: 0978914096</p>
+      <h4 style="margin: 8px 0 0 0; font-size: 15px; text-transform: uppercase;">HÓA ĐƠN THANH TOÁN</h4>
+    </div>
+    <div style="font-size: 12px; margin-bottom: 10px; line-height: 1.4;">
+      <p><strong>Mã đơn:</strong> <span id="inv-print-id"></span></p>
+      <p><strong>Thời gian:</strong> <span id="inv-print-time"></span></p>
+      <p><strong>Khách hàng:</strong> <span id="inv-print-customer"></span></p>
+      <p><strong>Hình thức:</strong> <span id="inv-print-payment"></span></p>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px;" border="1" cellpadding="5">
+      <thead>
+        <tr style="background: #f2f2f2;">
+          <th>Tên món</th>
+          <th style="text-align: center;">SL</th>
+          <th style="text-align: right;">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody id="inv-print-items-tbody"></tbody>
+    </table>
+    <div style="text-align: right; font-size: 14px; font-weight: bold; margin-bottom: 20px;">
+      Tổng cộng: <span id="inv-print-total" style="color: #d35400;"></span>
+    </div>
+    <div style="text-align: center; font-size: 12px; font-style: italic; margin-top: 15px;">
+      <p>Cảm ơn quý khách và hẹn gặp lại!</p>
+    </div>
+  </div>
+
+  <!-- VÙNG ẨN IN BÁO CÁO -->
+  <div id="print-report-section">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2>🐝 BEE COFFEE</h2>
+      <h3 style="margin-top: 5px;">BÁO CÁO TỔNG HỢP DOANH THU & LỢI NHUẬN TRONG KỲ</h3>
+      <p style="font-size: 13px; color: #555; margin-top: 5px;" id="print-report-time-label">Kỳ báo cáo: Tháng này</p>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px;" border="1" cellpadding="8">
+      <tr style="background: #f2f2f2;">
+        <td><strong>Chỉ tiêu thống kê tài chính</strong></td>
+        <td style="text-align: right;"><strong>Số tiền (VNĐ)</strong></td>
+      </tr>
+      <tr>
+        <td>Tổng Doanh Thu Thành Công</td>
+        <td style="text-align: right; font-weight: bold; color: #2980b9;" id="print-rep-rev">0đ</td>
+      </tr>
+      <tr>
+        <td>Tổng Giá Vốn Hàng Bán</td>
+        <td style="text-align: right; font-weight: bold; color: #e67e22;" id="print-rep-cost">0đ</td>
+      </tr>
+      <tr style="background: #eafaf1;">
+        <td><strong>LỢI NHUẬN THỰC TẾ TRONG KỲ (Lãi gộp)</strong></td>
+        <td style="text-align: right; font-weight: bold; color: #27ae60; font-size: 16px;" id="print-rep-profit">0đ</td>
+      </tr>
+      <tr>
+        <td>Tổng Chi Phí Nguyên Liệu Nhập Kho</td>
+        <td style="text-align: right; font-weight: bold; color: #8e44ad;" id="print-rep-material">0đ</td>
+      </tr>
+    </table>
+    <div style="margin-top: 40px; display: flex; justify-content: space-between; font-size: 14px;">
+      <div style="text-align: center;">
+        <p><strong>Người lập báo cáo</strong></p>
+        <p style="font-size: 12px; font-style: italic; margin-top: 5px;">(Ký, ghi rõ họ tên)</p>
+      </div>
+      <div style="text-align: center;">
+        <p><strong>Chủ quán duyệt</strong></p>
+        <p style="font-size: 12px; font-style: italic; margin-top: 5px;">(Ký, đóng dấu nếu có)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ĐĂNG NHẬP -->
+  <div class="modal" id="login-modal">
+    <div class="modal-content login-box">
+      <h3 id="login-modal-title">🔑 Xác Nhận Đăng Nhập</h3>
+      <p style="font-size: 0.85rem; color: #718096; margin-bottom: 15px;" id="login-modal-desc">Vui lòng nhập mật khẩu để tiếp tục.</p>
+      <input type="password" id="pass-input" placeholder="••••••" onkeyup="if(event.key==='Enter') confirmLogin()">
+      <div class="login-err" id="login-err-msg">Mật khẩu không chính xác!</div>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button onclick="closeLoginModal()" style="padding:10px 18px; border:none; border-radius:10px; background:#edf2f7; color:#4a5568; font-weight:700; cursor:pointer;">Hủy</button>
+        <button onclick="confirmLogin()" style="padding:10px 22px; border:none; border-radius:10px; background:linear-gradient(135deg, #f39c12, #e67e22); color:white; font-weight:700; cursor:pointer; box-shadow: 0 4px 12px rgba(243,156,18,0.3);">Đăng Nhập</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GIỎ HÀNG -->
+  <div class="modal" id="cart-modal">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="color:#2c3e50;">🛒 Giỏ Hàng Của Bạn</h3>
+        <button onclick="closeCartModal()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#a0aec0;">✖</button>
+      </div>
+      <div id="cart-items-container"></div>
+      <div style="margin-top: 18px; text-align: right; font-weight: bold;">
+        Tổng tiền: <span style="color: #d35400; font-size: 1.15rem;" id="modal-cart-total">0đ</span>
+      </div>
+      <div style="margin-top: 14px;">
+        <label style="font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; display:block; color:#4a5568;">Phương thức thanh toán:</label>
+        <select id="cart-payment-method" style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 10px; font-size: 0.95rem;">
+          <option value="cod">💵 Thanh toán khi nhận hàng (COD)</option>
+          <option value="qr">📱 Quét mã QR Chuyển khoản ngân hàng</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:18px;">
+        <button onclick="clearCart()" style="background:#fef5d8; color:#d35400; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;">Xóa sạch</button>
+        <button onclick="goToCheckout()" style="background:linear-gradient(135deg, #25d366, #128c7e); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer; box-shadow: 0 4px 12px rgba(37,211,102,0.3);">Tiến hành đặt hàng ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ĐIỀN THÔNG TIN GIAO HÀNG -->
+  <div class="modal" id="checkout-modal">
+    <div class="modal-content">
+      <h3 style="color:#2c3e50; margin-bottom: 12px;">📍 Thông Tin Giao Hàng Online</h3>
+      <div class="form-group" style="margin-top:10px;"><input type="text" id="customer-name" placeholder="Họ và tên của bạn"></div>
+      <div class="form-group"><input type="tel" id="customer-phone" placeholder="Số điện thoại liên hệ"></div>
+      <div class="form-group"><textarea id="customer-address" rows="3" placeholder="Địa chỉ nhận hàng chi tiết..."></textarea></div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+        <button onclick="closeCheckoutModal()" style="padding:10px 16px; border:none; border-radius:10px; background:#edf2f7; color:#4a5568; font-weight:700; cursor:pointer;">Hủy</button>
+        <button onclick="sendToZalo()" style="background:linear-gradient(135deg, #25d366, #128c7e); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer; box-shadow: 0 4px 12px rgba(37,211,102,0.3);">Xác Nhận & Gửi Zalo 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BANK_CONFIG = { BANK_ID: "MB", ACCOUNT_NO: "0978914096", ACCOUNT_NAME: "BEE COFFEE" };
+    const ZALO_PHONE = "0978914096";
+
+    // Danh sách đầy đủ từ Menu 1 và Menu 2 Bee Coffee kèm giá vốn ước tính (40% giá bán) và ảnh minh họa chuẩn
+    const defaultProducts = [
+      // --- Cà phê & Latte ---
+      { id: 1, name: "Cà phê đen", category: "ca-phe", price: 25000, cost: 10000, desc: "Cà phê nguyên chất đậm đà", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=300" },
+      { id: 2, name: "Cà phê sữa", category: "ca-phe", price: 25000, cost: 10000, desc: "Cà phê truyền thống sữa đặc", img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=300" },
+      { id: 3, name: "Cà phê muối", category: "ca-phe", price: 30000, cost: 12000, desc: "Hương vị độc đáo béo mặn", img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=300" },
+      { id: 4, name: "Bạc sỉu", category: "ca-phe", price: 30000, cost: 12000, desc: "Nhiều sữa ít cà phê thơm ngon", img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=300" },
+      { id: 5, name: "Cacao kem muối", category: "ca-phe", price: 30000, cost: 12000, desc: "Cacao đậm vị kết hợp kem muối", img: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=300" },
+      { id: 6, name: "Cà phê sữa dừa", category: "ca-phe", price: 35000, cost: 14000, desc: "Cà phê cốt dừa thơm béo", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=300" },
+      { id: 7, name: "Cacao latte", category: "ca-phe", price: 30000, cost: 12000, desc: "Cacao pha phong cách latte", img: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=300" },
+      { id: 8, name: "Matcha latte", category: "ca-phe", price: 30000, cost: 12000, desc: "Trà xanh Nhật Bản thơm mát", img: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=300" },
+
+      // --- Trà ---
+      { id: 9, name: "Trà sâm", category: "tra", price: 15000, cost: 6000, desc: "Trà sâm thanh mát giải nhiệt", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+      { id: 10, name: "Trà tắc", category: "tra", price: 15000, cost: 6000, desc: "Trà tắc chanh tươi sảng khoái", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+      { id: 11, name: "Trà chanh", category: "tra", price: 15000, cost: 6000, desc: "Trà chanh giải khát truyền thống", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+      { id: 12, name: "Trà đào", category: "tra", price: 20000, cost: 8000, desc: "Trà đào miếng thơm ngọt", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300" },
+      { id: 13, name: "Trà dưa lưới", category: "tra", price: 20000, cost: 8000, desc: "Hương dưa lưới thơm mát", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300" },
+      { id: 14, name: "Trà chanh leo", category: "tra", price: 25000, cost: 10000, desc: "Chanh leo tươi chua ngọt", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300" },
+      { id: 15, name: "Trà tắc xí muội", category: "tra", price: 25000, cost: 10000, desc: "Tắc kết hợp xí muội đậm đà", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+      { id: 16, name: "Trà Atisô xoài mật ong", category: "tra", price: 35000, cost: 14000, desc: "Atisô kết hợp xoài và mật ong", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+      { id: 17, name: "Trà Atisô cam xoài", category: "tra", price: 35000, cost: 14000, desc: "Thức uống dinh dưỡng thanh lọc", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+      { id: 18, name: "Trà đào cam sả", category: "tra", price: 30000, cost: 12000, desc: "Trà đào cam sả chuẩn gu", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300" },
+      { id: 19, name: "Trà sữa Ô Long lài", category: "tra", price: 35000, cost: 14000, desc: "Ô long lài thơm nức mũi", img: "https://images.unsplash.com/photo-1558857563-b371033873b8?w=300" },
+      { id: 20, name: "Trà cúc nóng", category: "tra", price: 25000, cost: 10000, desc: "Trà hoa cúc ấm áp thư giãn", img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300" },
+      { id: 21, name: "Hồng trà cam quế", category: "tra", price: 30000, cost: 12000, desc: "Hồng trà thơm hương quế cam", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300" },
+
+      // --- Nước giải khát / Trái cây ---
+      { id: 22, name: "Nước cam", category: "nuoc-giai-khat", price: 30000, cost: 12000, desc: "Cam tươi vắt nguyên chất", img: "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=300" },
+      { id: 23, name: "Nước dưa hấu", category: "nuoc-giai-khat", price: 30000, cost: 12000, desc: "Dưa hấu ép thanh mát", img: "https://images.unsplash.com/photo-1589734346149-324bc5ae23de?w=300" },
+      { id: 24, name: "Nước dứa", category: "nuoc-giai-khat", price: 30000, cost: 12000, desc: "Dứa ép chua ngọt dễ uống", img: "https://images.unsplash.com/photo-1589734346149-324bc5ae23de?w=300" },
+      { id: 25, name: "Sinh tố bơ xoài", category: "nuoc-giai-khat", price: 40000, cost: 16000, desc: "Bơ và xoài xay mịn béo ngậy", img: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=300" },
+      { id: 26, name: "Sinh tố bơ cafe", category: "nuoc-giai-khat", price: 40000, cost: 16000, desc: "Sự kết hợp hoàn hảo bơ và cafe", img: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=300" },
+      { id: 27, name: "Sinh tố xoài", category: "nuoc-giai-khat", price: 40000, cost: 16000, desc: "Xoài tươi xay đậm đà", img: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=300" },
+      { id: 28, name: "Sinh tố bơ", category: "nuoc-giai-khat", price: 40000, cost: 16000, desc: "Bơ tươi nguyên chất thơm béo", img: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=300" },
+      { id: 29, name: "Bơ sữa dừa", category: "nuoc-giai-khat", price: 45000, cost: 18000, desc: "Bơ kết hợp cốt dừa thơm ngậy", img: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=300" },
+      { id: 30, name: "Sấu khoáng", category: "nuoc-giai-khat", price: 25000, cost: 10000, desc: "Nước sấu thanh tao giải khát", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300" },
+      { id: 31, name: "Nước dâu tằm", category: "nuoc-giai-khat", price: 30000, cost: 12000, desc: "Dâu tằm ngào đường thơm ngọt", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300" },
+
+      // --- Sữa chua ---
+      { id: 32, name: "Sữa chua lắc", category: "sua-chua", price: 35000, cost: 14000, desc: "Sữa chua đánh đá mịn màng", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=300" },
+      { id: 33, name: "Sữa chua lắc mix vị", category: "sua-chua", price: 40000, cost: 16000, desc: "Sữa chua lắc kết hợp nhiều vị", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=300" },
+      { id: 34, name: "Sữa chua hoa quả", category: "sua-chua", price: 40000, cost: 16000, desc: "Sữa chua ăn kèm trái cây tươi", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=300" },
+
+      // --- Sữa lắc & Sữa tươi ---
+      { id: 35, name: "Sữa lắc việt quất", category: "sua-lac", price: 30000, cost: 12000, desc: "Sữa lắc hương việt quất thơm ngon", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300" },
+      { id: 36, name: "Sữa lắc đào", category: "sua-lac", price: 30000, cost: 12000, desc: "Sữa lắc vị đào tươi mát", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300" },
+      { id: 37, name: "Sữa lắc dưa lưới", category: "sua-lac", price: 30000, cost: 12000, desc: "Sữa lắc dưa lưới ngọt dịu", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300" },
+      { id: 38, name: "Sữa lắc dâu", category: "sua-lac", price: 30000, cost: 12000, desc: "Sữa lắc dâu tây chua ngọt", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300" },
+      { id: 39, name: "Sữa lắc chanh leo", category: "sua-lac", price: 30000, cost: 12000, desc: "Sữa lắc chanh leo lạ miệng", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300" },
+      { id: 40, name: "Sữa tươi trân châu đường đen", category: "sua-lac", price: 35000, cost: 14000, desc: "Sữa tươi thơm béo cùng trân châu dai giòn", img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=300" }
+    ];
+
+    let products = JSON.parse(localStorage.getItem('app_products')) || defaultProducts;
+    let materials = JSON.parse(localStorage.getItem('app_materials')) || [];
+    let orders = JSON.parse(localStorage.getItem('app_orders')) || [];
+    let adminPass = localStorage.getItem('app_admin_pass') || "123456";
+    let staffPass = localStorage.getItem('app_staff_pass') || "654321";
+    let currentRoleLoggedIn = sessionStorage.getItem('app_current_role') || null;
+    let cart = {}, posCart = {}, temporaryImageData = "", loginTargetMode = "";
+
+    function saveProductsToStorage() { localStorage.setItem('app_products', JSON.stringify(products)); }
+    function saveMaterialsToStorage() { localStorage.setItem('app_materials', JSON.stringify(materials)); }
+    function saveOrdersToStorage() { localStorage.setItem('app_orders', JSON.stringify(orders)); }
+
+    function toggleCard(headerElement) {
+      const card = headerElement.closest('.admin-card');
+      card.classList.toggle('expanded');
+      const icon = headerElement.querySelector('.toggle-icon');
+      icon.innerText = card.classList.contains('expanded') ? "Thu gọn ✖" : "Hiện 🔍";
+    }
+
+    function getFormattedCurrentTime() {
+      const now = new Date();
+      return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}, ${now.toLocaleTimeString('vi-VN')}`;
+    }
+
+    function updateUIState() {
+      document.getElementById('btn-logout').style.display = currentRoleLoggedIn ? 'inline-block' : 'none';
+    }
+
+    function switchMode(mode) {
+      if (mode === 'customer') showCustomerView();
+      else if (mode === 'staff') {
+        if (currentRoleLoggedIn !== 'staff' && currentRoleLoggedIn !== 'admin') { openLoginModal('staff'); return; }
+        showStaffView();
+      } else if (mode === 'admin') {
+        if (currentRoleLoggedIn !== 'admin') { openLoginModal('admin'); return; }
+        showAdminView();
+      }
+    }
+
+    function showCustomerView() {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mode-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('customer-view').classList.add('active');
+      document.getElementById('btn-customer-mode').classList.add('active');
+      renderMenu(products);
+    }
+
+    function showStaffView() {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mode-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('staff-view').classList.add('active');
+      document.getElementById('btn-staff-mode').classList.add('active');
+      posCart = {};
+      renderPOSProductList();
+      updatePOSTotal();
+      calculateStaffRevenue();
+      renderStaffOrderHistory();
+    }
+
+    function showAdminView() {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mode-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('admin-view').classList.add('active');
+      document.getElementById('btn-admin-mode').classList.add('active');
+      toggleRevInputs();
+      renderAdminOrders();
+      renderAdminMenuList();
+      renderAdminMaterialList();
+      updateMaterialTotalStat();
+    }
+
+    function openLoginModal(targetMode) {
+      loginTargetMode = targetMode;
+      document.getElementById('pass-input').value = '';
+      document.getElementById('login-err-msg').style.display = 'none';
+      document.getElementById('login-modal').style.display = 'flex';
+    }
+
+    function closeLoginModal() { document.getElementById('login-modal').style.display = 'none'; }
+
+    function confirmLogin() {
+      const inputPass = document.getElementById('pass-input').value;
+      if (loginTargetMode === 'staff' && (inputPass === staffPass || inputPass === adminPass)) {
+        currentRoleLoggedIn = 'staff'; sessionStorage.setItem('app_current_role', 'staff');
+        closeLoginModal(); updateUIState(); showStaffView();
+      } else if (loginTargetMode === 'admin' && inputPass === adminPass) {
+        currentRoleLoggedIn = 'admin'; sessionStorage.setItem('app_current_role', 'admin');
+        closeLoginModal(); updateUIState(); showAdminView();
+      } else {
+        document.getElementById('login-err-msg').style.display = 'block';
+      }
+    }
+
+    function logoutSystem() {
+      currentRoleLoggedIn = null; sessionStorage.removeItem('app_current_role');
+      updateUIState(); showCustomerView();
+    }
+
+    function changeAdminPass() {
+      const p = document.getElementById('new-admin-pass').value.trim();
+      if (!p) return alert("Nhập mật khẩu mới!");
+      adminPass = p; localStorage.setItem('app_admin_pass', adminPass);
+      alert("Đổi MK Chủ Quán thành công!");
+    }
+
+    function changeStaffPass() {
+      const p = document.getElementById('new-staff-pass').value.trim();
+      if (!p) return alert("Nhập mật khẩu mới!");
+      staffPass = p; localStorage.setItem('app_staff_pass', staffPass);
+      alert("Đổi MK Nhân Viên thành công!");
+    }
+
+    function addNewMaterial(e) {
+      e.preventDefault();
+      const name = document.getElementById('mat-name').value.trim();
+      const unit = document.getElementById('mat-unit').value.trim();
+      const price = parseInt(document.getElementById('mat-price').value);
+      materials.push({ id: Date.now(), name, unit, price });
+      saveMaterialsToStorage();
+      document.getElementById('add-material-form').reset();
+      renderAdminMaterialList();
+      updateMaterialTotalStat();
+    }
+
+    function renderAdminMaterialList() {
+      const container = document.getElementById('admin-material-list');
+      container.innerHTML = materials.map(m => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed #edf2f7;">
+          <span>${m.name} (${m.unit}) - <strong>${m.price.toLocaleString()}đ</strong></span>
+          <button onclick="deleteMaterial(${m.id})" style="background:#fef5d8; color:#d35400; border:none; padding:5px 10px; border-radius:6px; cursor:pointer; font-weight:700;">Xóa</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteMaterial(id) {
+      materials = materials.filter(m => m.id !== id);
+      saveMaterialsToStorage();
+      renderAdminMaterialList();
+      updateMaterialTotalStat();
+    }
+
+    function updateMaterialTotalStat() {
+      let total = materials.reduce((sum, m) => sum + Number(m.price), 0);
+      document.getElementById('stat-material-total').innerText = total.toLocaleString() + 'đ';
+    }
+
+    function calculateStaffRevenue() {
+      const now = new Date();
+      const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      let cash = 0, transfer = 0;
+      orders.forEach(o => {
+        if (o.time && o.time.includes(todayStr) && o.status === 'Giao thành công') {
+          if (o.paymentMethod === 'cash') cash += Number(o.total);
+          else if (o.paymentMethod === 'qr') transfer += Number(o.total);
+        }
+      });
+      document.getElementById('staff-stat-cash').innerText = cash.toLocaleString() + 'đ';
+      document.getElementById('staff-stat-transfer').innerText = transfer.toLocaleString() + 'đ';
+      document.getElementById('staff-stat-total').innerText = (cash + transfer).toLocaleString() + 'đ';
+    }
+
+    function toggleRevInputs() {
+      const type = document.getElementById('rev-type').value;
+      const wrapper = document.getElementById('filter-input-wrapper');
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+
+      if (type === 'day') {
+        wrapper.innerHTML = `<input type="date" id="rev-date-input" value="${y}-${m}-${d}" onchange="calculateRevenue()">`;
+      } else if (type === 'month') {
+        wrapper.innerHTML = `<input type="month" id="rev-month-input" value="${y}-${m}" onchange="calculateRevenue()">`;
+      } else if (type === 'quarter') {
+        wrapper.innerHTML = `
+          <select id="rev-quarter-select" onchange="calculateRevenue()">
+            <option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option>
+          </select>
+          <select id="rev-quarter-year" onchange="calculateRevenue()"><option value="${y}">${y}</option></select>`;
+      } else if (type === 'year') {
+        wrapper.innerHTML = `<select id="rev-year-input" onchange="calculateRevenue()"><option value="${y}">${y}</option></select>`;
+      }
+      calculateRevenue();
+    }
+
+    function calculateRevenue() {
+      const type = document.getElementById('rev-type').value;
+      let totalRev = 0, totalCost = 0;
+
+      orders.forEach(o => {
+        if (o.status !== 'Giao thành công') return;
+        let isMatch = false;
+        if (type === 'day') {
+          const val = document.getElementById('rev-date-input')?.value;
+          if (val && o.time.includes(val.split('-').reverse().join('/'))) isMatch = true;
+        } else if (type === 'month') {
+          const val = document.getElementById('rev-month-input')?.value;
+          if (val) {
+            const [y, m] = val.split('-');
+            if (o.time.includes(`/${m}/${y}`)) isMatch = true;
+          }
+        } else if (type === 'quarter') {
+          const q = document.getElementById('rev-quarter-select')?.value;
+          const yr = document.getElementById('rev-quarter-year')?.value;
+          let months = q === '1' ? ['01', '02', '03'] : (q === '2' ? ['04', '05', '06'] : (q === '3' ? ['07', '08', '09'] : ['10', '11', '12']));
+          if (months.some(mo => o.time.includes(`/${mo}/${yr} `))) isMatch = true;
+        } else if (type === 'year') {
+          const yr = document.getElementById('rev-year-input')?.value;
+          if (yr && o.time.includes(`/${yr}`)) isMatch = true;
+        }
+
+        if (isMatch) {
+          totalRev += Number(o.total);
+          o.items?.forEach(item => {
+            let pRef = products.find(p => p.name === item.name);
+            totalCost += (pRef ? Number(pRef.cost) : 0) * Number(item.qty);
+          });
+        }
+      });
+
+      const profit = totalRev - totalCost;
+      document.getElementById('stat-revenue').innerText = totalRev.toLocaleString() + 'đ';
+      document.getElementById('stat-cost').innerText = totalCost.toLocaleString() + 'đ';
+      document.getElementById('stat-profit').innerText = profit.toLocaleString() + 'đ';
+      return { totalRev, totalCost, profit };
+    }
+
+    function printRevenueReport() {
+      const stats = calculateRevenue();
+      const totalMatCost = materials.reduce((sum, m) => sum + Number(m.price), 0);
+      document.getElementById('print-rep-rev').innerText = stats.totalRev.toLocaleString() + 'đ';
+      document.getElementById('print-rep-cost').innerText = stats.totalCost.toLocaleString() + 'đ';
+      document.getElementById('print-rep-profit').innerText = stats.profit.toLocaleString() + 'đ';
+      document.getElementById('print-rep-material').innerText = totalMatCost.toLocaleString() + 'đ';
+
+      document.body.className = "print-mode-report";
+      window.print();
+      document.body.className = "";
+    }
+
+    function renderPOSProductList() {
+      const container = document.getElementById('pos-product-selection-list');
+      container.innerHTML = products.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed #edf2f7;">
+          <span>${p.name} - <strong>${p.price.toLocaleString()}đ</strong></span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="qty-btn" onclick="changePOSQty(${p.id}, -1)">-</button>
+            <span id="pos-qty-${p.id}" style="font-weight:700; width:20px; text-align:center;">${posCart[p.id] || 0}</span>
+            <button class="qty-btn" onclick="changePOSQty(${p.id}, 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function changePOSQty(id, delta) {
+      posCart[id] = (posCart[id] || 0) + delta;
+      if (posCart[id] <= 0) delete posCart[id];
+      document.getElementById(`pos-qty-${id}`).innerText = posCart[id] || 0;
+      updatePOSTotal();
+    }
+
+    function updatePOSTotal() {
+      let total = 0;
+      for (let id in posCart) {
+        let p = products.find(item => item.id == id);
+        if (p) total += p.price * posCart[id];
+      }
+      document.getElementById('pos-total-amount').innerText = total.toLocaleString() + 'đ';
+    }
+
+    function completeDirectPOSOrder() {
+      const name = document.getElementById('pos-customer-name').value.trim() || "Khách tại quầy";
+      const phone = document.getElementById('pos-customer-phone').value.trim() || "Khách lẻ";
+      const paymentMethod = document.getElementById('pos-payment-method').value;
+      let orderItems = [], total = 0;
+
+      for (let id in posCart) {
+        let p = products.find(item => item.id == id);
+        if (p && posCart[id] > 0) {
+          total += p.price * posCart[id];
+          orderItems.push({ name: p.name, qty: posCart[id], price: p.price * posCart[id] });
+        }
+      }
+      if (orderItems.length === 0) return alert("Chưa chọn món!");
+
+      const newOrder = { id: Date.now(), customerName: name, customerPhone: phone, customerAddress: "Bán tại quầy", items: orderItems, total, time: getFormattedCurrentTime(), status: 'Giao thành công', paymentMethod };
+      orders.unshift(newOrder);
+      saveOrdersToStorage();
+      
+      printInvoice(newOrder.id);
+      showStaffView();
+    }
+
+    function renderStaffOrderHistory() {
+      const container = document.getElementById('staff-order-history-list');
+      let posOrders = orders.filter(o => o.customerAddress === "Bán tại quầy");
+      if (posOrders.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#a0aec0; font-size:0.85rem;">Chưa có đơn bán tại quầy nào.</p>`;
+        return;
+      }
+      container.innerHTML = posOrders.map(o => `
+        <div class="order-item" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong>${o.customerName}</strong> - <span style="color:#d35400; font-weight:700;">${o.total.toLocaleString()}đ</span><br>
+            <span style="font-size:0.75rem; color:#718096;">${o.time}</span>
+          </div>
+          <button onclick="printInvoice(${o.id})" style="background:#3498db; color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.8rem; box-shadow: 0 2px 6px rgba(52,152,219,0.3);">🖨️ In Hóa Đơn</button>
+        </div>
+      `).join('');
+    }
+
+    function printInvoice(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
+      document.getElementById('inv-print-id').innerText = "#" + order.id;
+      document.getElementById('inv-print-time').innerText = order.time;
+      document.getElementById('inv-print-customer').innerText = order.customerName + (order.customerPhone ? ` (${order.customerPhone})` : "");
+      document.getElementById('inv-print-payment').innerText = order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản QR';
+      document.getElementById('inv-print-total').innerText = order.total.toLocaleString() + 'đ';
+
+      let tbodyHTML = "";
+      order.items.forEach(item => {
+        tbodyHTML += `<tr><td>${item.name}</td><td style="text-align: center;">${item.qty}</td><td style="text-align: right;">${item.price.toLocaleString()}đ</td></tr>`;
+      });
+      document.getElementById('inv-print-items-tbody').innerHTML = tbodyHTML;
+
+      document.body.className = "print-mode-invoice";
+      window.print();
+      document.body.className = "";
+    }
+
+    function nextOrderStatus(id) {
+      const o = orders.find(x => x.id === id);
+      if (o) {
+        o.status = o.status === 'Chờ xác nhận' ? 'Đang giao hàng' : (o.status === 'Đang giao hàng' ? 'Giao thành công' : 'Chờ xác nhận');
+        saveOrdersToStorage();
+        renderAdminOrders();
+        calculateRevenue();
+      }
+    }
+
+    function renderAdminOrders() {
+      const container = document.getElementById('order-list-container');
+      if (orders.length === 0) { container.innerHTML = `<p style="text-align:center; color:#a0aec0;">Chưa có đơn hàng nào!</p>`; return; }
+      container.innerHTML = orders.map(o => `
+        <div class="order-item" style="display:flex; justify-content:space-between; align-items:center;">
+          <div><strong>${o.customerName}</strong> - <span style="color:#d35400;">${o.total.toLocaleString()}đ</span> <br><span style="font-size:0.8rem; color:#718096;">Trạng thái: <strong>${o.status}</strong></span></div>
+          <div><button onclick="nextOrderStatus(${o.id})" style="padding:6px 12px; font-size:0.8rem; cursor:pointer; background:#edf2f7; border:1px solid #cbd5e0; border-radius:6px; font-weight:700;">Đổi trạng thái</button></div>
+        </div>
+      `).join('');
+    }
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          temporaryImageData = e.target.result;
+          const img = document.getElementById('image-preview');
+          img.src = temporaryImageData; img.style.display = 'block';
+          document.getElementById('preview-text').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function renderMenu(items) {
+      document.getElementById('menu-container').innerHTML = items.map(p => `
+        <div class="product-card">
+          <img src="${p.img}" class="product-img">
+          <div class="product-info">
+            <div>
+              <div class="product-title">${p.name}</div>
+              <div class="product-price">${p.price.toLocaleString()}đ</div>
+            </div>
+            <button class="add-btn" onclick="addToCart(${p.id})">+ Thêm vào giỏ</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterMenu(category, event) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      if (category === 'all') renderMenu(products);
+      else renderMenu(products.filter(p => p.category === category));
+    }
+
+    function addToCart(id) { cart[id] = (cart[id] || 0) + 1; updateCartUI(); }
+    
+    function updateCartUI() {
+      let count = 0, total = 0;
+      for (let id in cart) {
+        let p = products.find(item => item.id == id);
+        if (p) { count += cart[id]; total += p.price * cart[id]; }
+      }
+      document.getElementById('cart-count').innerText = count;
+      document.getElementById('cart-total').innerText = total.toLocaleString() + 'đ';
+    }
+
+    function openCartModal() {
+      const container = document.getElementById('cart-items-container');
+      let total = 0;
+      if (Object.keys(cart).length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#a0aec0; padding:20px;">Giỏ hàng của bạn đang trống!</p>`;
+        document.getElementById('modal-cart-total').innerText = '0đ';
+        document.getElementById('cart-modal').style.display = 'flex';
+        return;
+      }
+      container.innerHTML = Object.keys(cart).map(id => {
+        let p = products.find(item => item.id == id);
+        if (!p) return '';
+        let subtotal = p.price * cart[id];
+        total += subtotal;
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #edf2f7;">
+            <div><strong>${p.name}</strong><br><span style="font-size:0.8rem; color:#718096;">${p.price.toLocaleString()}đ x ${cart[id]}</span></div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span style="font-weight:700; color:#d35400;">${subtotal.toLocaleString()}đ</span>
+              <button onclick="removeFromCart(${id})" style="background:#fef5d8; color:#d35400; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-weight:700;">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('modal-cart-total').innerText = total.toLocaleString() + 'đ';
+      document.getElementById('cart-modal').style.display = 'flex';
+    }
+
+    function removeFromCart(id) {
+      delete cart[id];
+      updateCartUI();
+      openCartModal();
+    }
+
+    function closeCartModal() { document.getElementById('cart-modal').style.display = 'none'; }
+    function clearCart() { cart = {}; updateCartUI(); closeCartModal(); }
+
+    function goToCheckout() {
+      if (Object.keys(cart).length === 0) return alert("Giỏ hàng trống!");
+      closeCartModal();
+      document.getElementById('checkout-modal').style.display = 'flex';
+    }
+
+    function closeCheckoutModal() { document.getElementById('checkout-modal').style.display = 'none'; }
+
+    function sendToZalo() {
+      const name = document.getElementById('customer-name').value.trim();
+      const phone = document.getElementById('customer-phone').value.trim();
+      const address = document.getElementById('customer-address').value.trim();
+      const paymentMethod = document.getElementById('cart-payment-method').value;
+
+      if (!name || !phone || !address) return alert("Vui lòng điền đầy đủ thông tin giao hàng!");
+
+      let orderItems = [], total = 0;
+      for (let id in cart) {
+        let p = products.find(item => item.id == id);
+        if (p) {
+          total += p.price * cart[id];
+          orderItems.push({ name: p.name, qty: cart[id], price: p.price * cart[id] });
+        }
+      }
+
+      const newOrder = { id: Date.now(), customerName: name, customerPhone: phone, customerAddress: address, items: orderItems, total, time: getFormattedCurrentTime(), status: 'Chờ xác nhận', paymentMethod };
+      orders.unshift(newOrder);
+      saveOrdersToStorage();
+
+      let paymentText = paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : `Chuyển khoản QR (NH: ${BANK_CONFIG.BANK_ID}, STK: ${BANK_CONFIG.ACCOUNT_NO})`;
+      let msg = `🐝 *ĐƠN HÀNG MỚI - BEE COFFEE*\n\n👤 Khách hàng: ${name}\n📞 SĐT: ${phone}\n📍 Địa chỉ: ${address}\n💳 Hình thức: ${paymentText}\n\n📝 *Chi tiết món:*`;
+      orderItems.forEach(item => { msg += `\n- ${item.name} x${item.qty}: ${item.price.toLocaleString()}đ`; });
+      msg += `\n\n💰 *TỔNG TIỀN: ${total.toLocaleString()}đ*`;
+
+      window.open(`https://zalo.me/${ZALO_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+      cart = {};
+      updateCartUI();
+      closeCheckoutModal();
+      alert("Đã lưu đơn hàng và chuyển hướng sang Zalo để gửi đơn thành công!");
+    }
+
+    function renderAdminMenuList() {
+      document.getElementById('admin-menu-list').innerHTML = products.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #edf2f7;">
+          <span>${p.name} (Bán: <strong>${p.price.toLocaleString()}đ</strong> | Vốn: ${(p.cost || 0).toLocaleString()}đ)</span>
+          <button onclick="deleteProduct(${p.id})" style="background:#fef5d8; color:#d35400; border:none; padding:5px 10px; border-radius:6px; cursor:pointer; font-weight:700;">Xóa</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteProduct(id) {
+      products = products.filter(p => p.id !== id);
+      saveProductsToStorage();
+      renderAdminMenuList();
+      renderMenu(products);
+    }
+
+    function addNewProduct(e) {
+      e.preventDefault();
+      products.push({ id: Date.now(), name: document.getElementById('new-p-name').value, category: document.getElementById('new-p-category').value, price: parseInt(document.getElementById('new-p-price').value), cost: parseInt(document.getElementById('new-p-cost').value) || 0, desc: document.getElementById('new-p-desc').value, img: temporaryImageData || "https://via.placeholder.com/150" });
+      saveProductsToStorage();
+      alert("Thêm món thành công!");
+      document.getElementById('add-product-form').reset();
+      document.getElementById('image-preview').style.display = 'none';
+      document.getElementById('preview-text').style.display = 'block';
+      temporaryImageData = "";
+      renderAdminMenuList();
+      renderMenu(products);
+    }
+
+    updateUIState();
+    renderMenu(products);
+  </script>
+</body>
+</html>
